@@ -12,7 +12,7 @@ Built with vanilla HTML, CSS, and JavaScript. Perfect for Japanese learners!
 
 ## Demo
 You can try it live:  
-👉 [GitHub Pages link after deployment]
+👉 [https://nikhiltomar2712.github.io/katakana-quiz/]
 
 ## How to Use
 1. Clone this repository  
@@ -35,7 +35,7 @@ I'm a developer passionate about Japan and language learning. This project shows
 ---
 
 Made with ❤️ by [Nikhil Tomar]  
-[GitHub Profile Link]
+[https://github.com/nikhiltomar2712]
 
 ```
 # Create a new folder
