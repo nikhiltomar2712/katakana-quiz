@@ -29,6 +29,7 @@
       max-width: 500px;
       width: 100%;
       text-align: center;
+      position: relative;
     }
 
     h1 {
@@ -43,6 +44,12 @@
       margin-bottom: 30px;
     }
 
+    .question-counter {
+      color: #718096;
+      font-size: 0.9rem;
+      margin-bottom: 15px;
+    }
+
     .kana-display {
       font-size: 6rem;
       font-weight: bold;
@@ -55,6 +62,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: background 0.3s;
     }
 
     .options {
@@ -76,10 +84,16 @@
       font-weight: 500;
     }
 
-    .option-btn:hover {
+    .option-btn:hover:not(:disabled) {
       background: #f7fafc;
       border-color: #4299e1;
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .option-btn:disabled {
+      cursor: default;
+      opacity: 0.8;
     }
 
     .option-btn.correct {
@@ -97,10 +111,11 @@
     .score-board {
       display: flex;
       justify-content: center;
-      gap: 40px;
+      gap: 30px;
       margin-bottom: 20px;
-      font-size: 1.1rem;
+      font-size: 1rem;
       color: #4a5568;
+      flex-wrap: wrap;
     }
 
     .score-board span {
@@ -108,19 +123,29 @@
       color: #2b6cb0;
     }
 
+    .button-group {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .next-btn, .end-btn {
+      border: none;
+      border-radius: 12px;
+      padding: 14px 28px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+    }
+
     .next-btn {
       background: #4299e1;
       color: white;
-      border: none;
-      border-radius: 12px;
-      padding: 14px 40px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
     }
 
-    .next-btn:hover {
+    .next-btn:hover:not(:disabled) {
       background: #3182ce;
     }
 
@@ -129,11 +154,93 @@
       cursor: not-allowed;
     }
 
+    .end-btn {
+      background: #ed8936;
+      color: white;
+    }
+
+    .end-btn:hover {
+      background: #dd6b20;
+    }
+
     .feedback {
-      height: 24px;
+      height: 28px;
       margin: 10px 0;
       font-weight: 600;
       font-size: 1rem;
+    }
+
+    /* ----- Results Overlay ----- */
+    .results-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .results-card {
+      background: white;
+      border-radius: 24px;
+      padding: 40px 30px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+
+    .results-card h2 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+      color: #2d3748;
+    }
+
+    .points-badge {
+      display: inline-block;
+      background: #ebf4ff;
+      color: #2b6cb0;
+      font-size: 2.5rem;
+      font-weight: bold;
+      padding: 10px 30px;
+      border-radius: 50px;
+      margin: 20px 0;
+    }
+
+    .stats-table {
+      width: 100%;
+      margin: 20px 0;
+      text-align: left;
+      font-size: 1.1rem;
+    }
+
+    .stats-table td {
+      padding: 8px 0;
+    }
+
+    .stats-table td:last-child {
+      text-align: right;
+      font-weight: 600;
+      color: #2b6cb0;
+    }
+
+    .restart-btn {
+      background: #38a169;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 30px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 10px;
+    }
+
+    .restart-btn:hover {
+      background: #2f855a;
     }
 
     .footer-note {
@@ -147,6 +254,7 @@
   <div class="container">
     <h1>🇯🇵 Katakana Quiz</h1>
     <p class="subtitle">カタカナをおぼえよう！</p>
+    <div class="question-counter" id="questionCounter">問題 #1</div>
 
     <div class="kana-display" id="kanaDisplay"></div>
 
@@ -156,93 +264,77 @@
       <div>✅ <span id="correctCount">0</span></div>
       <div>❌ <span id="wrongCount">0</span></div>
       <div>🔥 <span id="streak">0</span></div>
+      <div>🏆 <span id="pointsEarned">0</span> pts</div>
     </div>
 
     <div class="feedback" id="feedback"></div>
 
-    <button class="next-btn" id="nextBtn" disabled>Next → つぎへ</button>
+    <div class="button-group">
+      <button class="next-btn" id="nextBtn" disabled>Next → つぎへ</button>
+      <button class="end-btn" id="endBtn">End Quiz 🏁</button>
+    </div>
 
     <p class="footer-note">
       Made with ❤️ for Japanese learners | <a href="README.ja.md">日本語のREADME</a>
     </p>
   </div>
 
+  <!-- Results Overlay -->
+  <div class="results-overlay" id="resultsOverlay">
+    <div class="results-card">
+      <h2>🎉 クイズ終了！<br><small>Quiz Finished!</small></h2>
+      <div class="points-badge" id="finalPoints">0</div>
+      <p>ポイント</p>
+      <table class="stats-table">
+        <tr><td>問題数 / Questions</td><td id="finalTotalQuestions">0</td></tr>
+        <tr><td>正解 / Correct</td><td id="finalCorrect">0</td></tr>
+        <tr><td>不正解 / Wrong</td><td id="finalWrong">0</td></tr>
+        <tr><td>正答率 / Accuracy</td><td id="finalAccuracy">0%</td></tr>
+        <tr><td>最高連続正解 / Best Streak</td><td id="finalBestStreak">0</td></tr>
+      </table>
+      <button class="restart-btn" id="restartBtn">もう一度 / Play Again</button>
+    </div>
+  </div>
+
   <script>
     // ---------- Katakana Data ----------
     const katakanaSet = [
-      { kana: "ア", romaji: "a" },
-      { kana: "イ", romaji: "i" },
-      { kana: "ウ", romaji: "u" },
-      { kana: "エ", romaji: "e" },
-      { kana: "オ", romaji: "o" },
-      { kana: "カ", romaji: "ka" },
-      { kana: "キ", romaji: "ki" },
-      { kana: "ク", romaji: "ku" },
-      { kana: "ケ", romaji: "ke" },
-      { kana: "コ", romaji: "ko" },
-      { kana: "サ", romaji: "sa" },
-      { kana: "シ", romaji: "shi" },
-      { kana: "ス", romaji: "su" },
-      { kana: "セ", romaji: "se" },
-      { kana: "ソ", romaji: "so" },
-      { kana: "タ", romaji: "ta" },
-      { kana: "チ", romaji: "chi" },
-      { kana: "ツ", romaji: "tsu" },
-      { kana: "テ", romaji: "te" },
-      { kana: "ト", romaji: "to" },
-      { kana: "ナ", romaji: "na" },
-      { kana: "ニ", romaji: "ni" },
-      { kana: "ヌ", romaji: "nu" },
-      { kana: "ネ", romaji: "ne" },
-      { kana: "ノ", romaji: "no" },
-      { kana: "ハ", romaji: "ha" },
-      { kana: "ヒ", romaji: "hi" },
-      { kana: "フ", romaji: "fu" },
-      { kana: "ヘ", romaji: "he" },
-      { kana: "ホ", romaji: "ho" },
-      { kana: "マ", romaji: "ma" },
-      { kana: "ミ", romaji: "mi" },
-      { kana: "ム", romaji: "mu" },
-      { kana: "メ", romaji: "me" },
-      { kana: "モ", romaji: "mo" },
-      { kana: "ヤ", romaji: "ya" },
-      { kana: "ユ", romaji: "yu" },
-      { kana: "ヨ", romaji: "yo" },
-      { kana: "ラ", romaji: "ra" },
-      { kana: "リ", romaji: "ri" },
-      { kana: "ル", romaji: "ru" },
-      { kana: "レ", romaji: "re" },
-      { kana: "ロ", romaji: "ro" },
-      { kana: "ワ", romaji: "wa" },
-      { kana: "ヲ", romaji: "wo" },
+      { kana: "ア", romaji: "a" },{ kana: "イ", romaji: "i" },{ kana: "ウ", romaji: "u" },
+      { kana: "エ", romaji: "e" },{ kana: "オ", romaji: "o" },{ kana: "カ", romaji: "ka" },
+      { kana: "キ", romaji: "ki" },{ kana: "ク", romaji: "ku" },{ kana: "ケ", romaji: "ke" },
+      { kana: "コ", romaji: "ko" },{ kana: "サ", romaji: "sa" },{ kana: "シ", romaji: "shi" },
+      { kana: "ス", romaji: "su" },{ kana: "セ", romaji: "se" },{ kana: "ソ", romaji: "so" },
+      { kana: "タ", romaji: "ta" },{ kana: "チ", romaji: "chi" },{ kana: "ツ", romaji: "tsu" },
+      { kana: "テ", romaji: "te" },{ kana: "ト", romaji: "to" },{ kana: "ナ", romaji: "na" },
+      { kana: "ニ", romaji: "ni" },{ kana: "ヌ", romaji: "nu" },{ kana: "ネ", romaji: "ne" },
+      { kana: "ノ", romaji: "no" },{ kana: "ハ", romaji: "ha" },{ kana: "ヒ", romaji: "hi" },
+      { kana: "フ", romaji: "fu" },{ kana: "ヘ", romaji: "he" },{ kana: "ホ", romaji: "ho" },
+      { kana: "マ", romaji: "ma" },{ kana: "ミ", romaji: "mi" },{ kana: "ム", romaji: "mu" },
+      { kana: "メ", romaji: "me" },{ kana: "モ", romaji: "mo" },{ kana: "ヤ", romaji: "ya" },
+      { kana: "ユ", romaji: "yu" },{ kana: "ヨ", romaji: "yo" },{ kana: "ラ", romaji: "ra" },
+      { kana: "リ", romaji: "ri" },{ kana: "ル", romaji: "ru" },{ kana: "レ", romaji: "re" },
+      { kana: "ロ", romaji: "ro" },{ kana: "ワ", romaji: "wa" },{ kana: "ヲ", romaji: "wo" },
       { kana: "ン", romaji: "n" },
       // Dakuten/Handakuten
-      { kana: "ガ", romaji: "ga" },
-      { kana: "ギ", romaji: "gi" },
-      { kana: "グ", romaji: "gu" },
-      { kana: "ゲ", romaji: "ge" },
-      { kana: "ゴ", romaji: "go" },
-      { kana: "ザ", romaji: "za" },
-      { kana: "ジ", romaji: "ji" },
-      { kana: "ズ", romaji: "zu" },
-      { kana: "ゼ", romaji: "ze" },
-      { kana: "ゾ", romaji: "zo" },
-      { kana: "ダ", romaji: "da" },
-      { kana: "ヂ", romaji: "dji" },
-      { kana: "ヅ", romaji: "dzu" },
-      { kana: "デ", romaji: "de" },
-      { kana: "ド", romaji: "do" },
-      { kana: "バ", romaji: "ba" },
-      { kana: "ビ", romaji: "bi" },
-      { kana: "ブ", romaji: "bu" },
-      { kana: "ベ", romaji: "be" },
-      { kana: "ボ", romaji: "bo" },
-      { kana: "パ", romaji: "pa" },
-      { kana: "ピ", romaji: "pi" },
-      { kana: "プ", romaji: "pu" },
-      { kana: "ペ", romaji: "pe" },
+      { kana: "ガ", romaji: "ga" },{ kana: "ギ", romaji: "gi" },{ kana: "グ", romaji: "gu" },
+      { kana: "ゲ", romaji: "ge" },{ kana: "ゴ", romaji: "go" },{ kana: "ザ", romaji: "za" },
+      { kana: "ジ", romaji: "ji" },{ kana: "ズ", romaji: "zu" },{ kana: "ゼ", romaji: "ze" },
+      { kana: "ゾ", romaji: "zo" },{ kana: "ダ", romaji: "da" },{ kana: "ヂ", romaji: "dji" },
+      { kana: "ヅ", romaji: "dzu" },{ kana: "デ", romaji: "de" },{ kana: "ド", romaji: "do" },
+      { kana: "バ", romaji: "ba" },{ kana: "ビ", romaji: "bi" },{ kana: "ブ", romaji: "bu" },
+      { kana: "ベ", romaji: "be" },{ kana: "ボ", romaji: "bo" },{ kana: "パ", romaji: "pa" },
+      { kana: "ピ", romaji: "pi" },{ kana: "プ", romaji: "pu" },{ kana: "ペ", romaji: "pe" },
       { kana: "ポ", romaji: "po" }
     ];
+
+    // ---------- Shuffle Utility ----------
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
 
     // ---------- Game State ----------
     let currentKana = null;
@@ -250,7 +342,11 @@
     let correctCount = 0;
     let wrongCount = 0;
     let streak = 0;
+    let bestStreak = 0;
+    let questionNumber = 0;
+    let totalPoints = 0;
     let answerLocked = false;
+    let quizActive = true;  // becomes false when ended
 
     // ---------- DOM Elements ----------
     const kanaDisplay = document.getElementById("kanaDisplay");
@@ -258,36 +354,57 @@
     const correctSpan = document.getElementById("correctCount");
     const wrongSpan = document.getElementById("wrongCount");
     const streakSpan = document.getElementById("streak");
+    const pointsSpan = document.getElementById("pointsEarned");
     const feedbackDiv = document.getElementById("feedback");
     const nextBtn = document.getElementById("nextBtn");
+    const endBtn = document.getElementById("endBtn");
+    const questionCounter = document.getElementById("questionCounter");
 
-    // ---------- Functions ----------
+    // Results overlay elements
+    const resultsOverlay = document.getElementById("resultsOverlay");
+    const finalPoints = document.getElementById("finalPoints");
+    const finalTotalQuestions = document.getElementById("finalTotalQuestions");
+    const finalCorrect = document.getElementById("finalCorrect");
+    const finalWrong = document.getElementById("finalWrong");
+    const finalAccuracy = document.getElementById("finalAccuracy");
+    const finalBestStreak = document.getElementById("finalBestStreak");
+    const restartBtn = document.getElementById("restartBtn");
+
+    // ---------- Point Calculation ----------
+    function calculatePoints(correct, streak) {
+      // Base 10 points per correct answer + streak bonus (streak * 2)
+      return correct * 10 + streak * 2;
+    }
+
+    function updatePointsDisplay() {
+      totalPoints = calculatePoints(correctCount, bestStreak);
+      pointsSpan.textContent = totalPoints;
+    }
+
+    // ---------- Game Functions ----------
     function getRandomKatakana() {
       const randomIndex = Math.floor(Math.random() * katakanaSet.length);
       return katakanaSet[randomIndex];
     }
 
-    // Generate 4 options (1 correct, 3 random wrong romaji)
     function generateOptions(correctRomaji) {
       const otherRomaji = katakanaSet
         .map(item => item.romaji)
         .filter(r => r !== correctRomaji);
       
-      // Shuffle and pick 3
-      const shuffledOthers = otherRomaji.sort(() => 0.5 - Math.random());
+      const shuffledOthers = shuffleArray([...otherRomaji]);
       const wrongOptions = shuffledOthers.slice(0, 3);
-      
-      // Combine with correct, shuffle again
-      const allOptions = [correctRomaji, ...wrongOptions].sort(() => 0.5 - Math.random());
+      const allOptions = shuffleArray([correctRomaji, ...wrongOptions]);
       return allOptions;
     }
 
     function loadNewQuestion() {
+      if (!quizActive) return;
+      
       answerLocked = false;
       nextBtn.disabled = true;
       feedbackDiv.textContent = "";
       
-      // Remove previous button styles
       document.querySelectorAll(".option-btn").forEach(btn => {
         btn.classList.remove("correct", "wrong");
       });
@@ -295,6 +412,8 @@
       currentKana = getRandomKatakana();
       correctOptionRomaji = currentKana.romaji;
       kanaDisplay.textContent = currentKana.kana;
+      questionNumber++;
+      questionCounter.textContent = `問題 #${questionNumber}`;
 
       const options = generateOptions(correctOptionRomaji);
       optionsContainer.innerHTML = "";
@@ -309,10 +428,9 @@
     }
 
     function handleAnswer(selectedRomaji, selectedBtn) {
-      if (answerLocked) return;
+      if (!quizActive || answerLocked) return;
       answerLocked = true;
 
-      // Highlight all buttons with correct/wrong
       const allButtons = document.querySelectorAll(".option-btn");
       allButtons.forEach(btn => {
         if (btn.textContent === correctOptionRomaji) {
@@ -323,10 +441,10 @@
         btn.disabled = true;
       });
 
-      // Update score
       if (selectedRomaji === correctOptionRomaji) {
         correctCount++;
         streak++;
+        if (streak > bestStreak) bestStreak = streak;
         feedbackDiv.textContent = "⭕ せいかい！ (Correct!)";
         feedbackDiv.style.color = "#38a169";
       } else {
@@ -339,14 +457,67 @@
       correctSpan.textContent = correctCount;
       wrongSpan.textContent = wrongCount;
       streakSpan.textContent = streak;
+      updatePointsDisplay();
 
       nextBtn.disabled = false;
     }
 
-    // Next button
-    nextBtn.addEventListener("click", loadNewQuestion);
+    function endQuiz() {
+      if (!quizActive) return;
+      quizActive = false;
+      answerLocked = true;
+      nextBtn.disabled = true;
+      
+      // Disable all option buttons
+      document.querySelectorAll(".option-btn").forEach(btn => btn.disabled = true);
+      
+      // Show results overlay
+      const finalAccuracyValue = questionNumber > 0 ? Math.round((correctCount / questionNumber) * 100) : 0;
+      finalPoints.textContent = totalPoints;
+      finalTotalQuestions.textContent = questionNumber;
+      finalCorrect.textContent = correctCount;
+      finalWrong.textContent = wrongCount;
+      finalAccuracy.textContent = `${finalAccuracyValue}%`;
+      finalBestStreak.textContent = bestStreak;
+      
+      resultsOverlay.style.display = "flex";
+    }
 
-    // Start game
+    function restartQuiz() {
+      // Reset all state
+      correctCount = 0;
+      wrongCount = 0;
+      streak = 0;
+      bestStreak = 0;
+      questionNumber = 0;
+      totalPoints = 0;
+      answerLocked = false;
+      quizActive = true;
+      
+      correctSpan.textContent = "0";
+      wrongSpan.textContent = "0";
+      streakSpan.textContent = "0";
+      pointsSpan.textContent = "0";
+      feedbackDiv.textContent = "";
+      nextBtn.disabled = true;
+      
+      resultsOverlay.style.display = "none";
+      loadNewQuestion();
+    }
+
+    // ---------- Event Listeners ----------
+    nextBtn.addEventListener("click", loadNewQuestion);
+    endBtn.addEventListener("click", endQuiz);
+    restartBtn.addEventListener("click", restartQuiz);
+
+    // Close overlay if clicking outside the card (optional)
+    resultsOverlay.addEventListener("click", (e) => {
+      if (e.target === resultsOverlay) {
+        // do nothing or restart? safer to keep it open
+      }
+    });
+
+    // Start the first question
     loadNewQuestion();
   </script>
 </body>
