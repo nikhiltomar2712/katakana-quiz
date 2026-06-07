@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Katakana Quiz | カタカナクイズ</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+      background: linear-gradient(135deg, #f5f0ff 0%, #e8f4f8 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+      padding: 40px 30px;
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #2d3748;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #718096;
+      font-size: 1rem;
+      margin-bottom: 30px;
+    }
+
+    .kana-display {
+      font-size: 6rem;
+      font-weight: bold;
+      color: #2b6cb0;
+      background: #ebf4ff;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 30px;
+      min-height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+
+    .option-btn {
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px 10px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: #2d3748;
+      font-weight: 500;
+    }
+
+    .option-btn:hover {
+      background: #f7fafc;
+      border-color: #4299e1;
+      transform: translateY(-1px);
+    }
+
+    .option-btn.correct {
+      background: #c6f6d5;
+      border-color: #38a169;
+      color: #22543d;
+    }
+
+    .option-btn.wrong {
+      background: #fed7d7;
+      border-color: #e53e3e;
+      color: #742a2a;
+    }
+
+    .score-board {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 20px;
+      font-size: 1.1rem;
+      color: #4a5568;
+    }
+
+    .score-board span {
+      font-weight: bold;
+      color: #2b6cb0;
+    }
+
+    .next-btn {
+      background: #4299e1;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 40px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .next-btn:hover {
+      background: #3182ce;
+    }
+
+    .next-btn:disabled {
+      background: #a0aec0;
+      cursor: not-allowed;
+    }
+
+    .feedback {
+      height: 24px;
+      margin: 10px 0;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .footer-note {
+      margin-top: 20px;
+      font-size: 0.85rem;
+      color: #a0aec0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🇯🇵 Katakana Quiz</h1>
+    <p class="subtitle">カタカナをおぼえよう！</p>
+
+    <div class="kana-display" id="kanaDisplay"></div>
+
+    <div class="options" id="optionsContainer"></div>
+
+    <div class="score-board">
+      <div>✅ <span id="correctCount">0</span></div>
+      <div>❌ <span id="wrongCount">0</span></div>
+      <div>🔥 <span id="streak">0</span></div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <button class="next-btn" id="nextBtn" disabled>Next → つぎへ</button>
+
+    <p class="footer-note">
+      Made with ❤️ for Japanese learners | <a href="README.ja.md">日本語のREADME</a>
+    </p>
+  </div>
+
+  <script>
+    // ---------- Katakana Data ----------
+    const katakanaSet = [
+      { kana: "ア", romaji: "a" },
+      { kana: "イ", romaji: "i" },
+      { kana: "ウ", romaji: "u" },
+      { kana: "エ", romaji: "e" },
+      { kana: "オ", romaji: "o" },
+      { kana: "カ", romaji: "ka" },
+      { kana: "キ", romaji: "ki" },
+      { kana: "ク", romaji: "ku" },
+      { kana: "ケ", romaji: "ke" },
+      { kana: "コ", romaji: "ko" },
+      { kana: "サ", romaji: "sa" },
+      { kana: "シ", romaji: "shi" },
+      { kana: "ス", romaji: "su" },
+      { kana: "セ", romaji: "se" },
+      { kana: "ソ", romaji: "so" },
+      { kana: "タ", romaji: "ta" },
+      { kana: "チ", romaji: "chi" },
+      { kana: "ツ", romaji: "tsu" },
+      { kana: "テ", romaji: "te" },
+      { kana: "ト", romaji: "to" },
+      { kana: "ナ", romaji: "na" },
+      { kana: "ニ", romaji: "ni" },
+      { kana: "ヌ", romaji: "nu" },
+      { kana: "ネ", romaji: "ne" },
+      { kana: "ノ", romaji: "no" },
+      { kana: "ハ", romaji: "ha" },
+      { kana: "ヒ", romaji: "hi" },
+      { kana: "フ", romaji: "fu" },
+      { kana: "ヘ", romaji: "he" },
+      { kana: "ホ", romaji: "ho" },
+      { kana: "マ", romaji: "ma" },
+      { kana: "ミ", romaji: "mi" },
+      { kana: "ム", romaji: "mu" },
+      { kana: "メ", romaji: "me" },
+      { kana: "モ", romaji: "mo" },
+      { kana: "ヤ", romaji: "ya" },
+      { kana: "ユ", romaji: "yu" },
+      { kana: "ヨ", romaji: "yo" },
+      { kana: "ラ", romaji: "ra" },
+      { kana: "リ", romaji: "ri" },
+      { kana: "ル", romaji: "ru" },
+      { kana: "レ", romaji: "re" },
+      { kana: "ロ", romaji: "ro" },
+      { kana: "ワ", romaji: "wa" },
+      { kana: "ヲ", romaji: "wo" },
+      { kana: "ン", romaji: "n" },
+      // Dakuten/Handakuten
+      { kana: "ガ", romaji: "ga" },
+      { kana: "ギ", romaji: "gi" },
+      { kana: "グ", romaji: "gu" },
+      { kana: "ゲ", romaji: "ge" },
+      { kana: "ゴ", romaji: "go" },
+      { kana: "ザ", romaji: "za" },
+      { kana: "ジ", romaji: "ji" },
+      { kana: "ズ", romaji: "zu" },
+      { kana: "ゼ", romaji: "ze" },
+      { kana: "ゾ", romaji: "zo" },
+      { kana: "ダ", romaji: "da" },
+      { kana: "ヂ", romaji: "dji" },
+      { kana: "ヅ", romaji: "dzu" },
+      { kana: "デ", romaji: "de" },
+      { kana: "ド", romaji: "do" },
+      { kana: "バ", romaji: "ba" },
+      { kana: "ビ", romaji: "bi" },
+      { kana: "ブ", romaji: "bu" },
+      { kana: "ベ", romaji: "be" },
+      { kana: "ボ", romaji: "bo" },
+      { kana: "パ", romaji: "pa" },
+      { kana: "ピ", romaji: "pi" },
+      { kana: "プ", romaji: "pu" },
+      { kana: "ペ", romaji: "pe" },
+      { kana: "ポ", romaji: "po" }
+    ];
+
+    // ---------- Game State ----------
+    let currentKana = null;
+    let correctOptionRomaji = "";
+    let correctCount = 0;
+    let wrongCount = 0;
+    let streak = 0;
+    let answerLocked = false;
+
+    // ---------- DOM Elements ----------
+    const kanaDisplay = document.getElementById("kanaDisplay");
+    const optionsContainer = document.getElementById("optionsContainer");
+    const correctSpan = document.getElementById("correctCount");
+    const wrongSpan = document.getElementById("wrongCount");
+    const streakSpan = document.getElementById("streak");
+    const feedbackDiv = document.getElementById("feedback");
+    const nextBtn = document.getElementById("nextBtn");
+
+    // ---------- Functions ----------
+    function getRandomKatakana() {
+      const randomIndex = Math.floor(Math.random() * katakanaSet.length);
+      return katakanaSet[randomIndex];
+    }
+
+    // Generate 4 options (1 correct, 3 random wrong romaji)
+    function generateOptions(correctRomaji) {
+      const otherRomaji = katakanaSet
+        .map(item => item.romaji)
+        .filter(r => r !== correctRomaji);
+      
+      // Shuffle and pick 3
+      const shuffledOthers = otherRomaji.sort(() => 0.5 - Math.random());
+      const wrongOptions = shuffledOthers.slice(0, 3);
+      
+      // Combine with correct, shuffle again
+      const allOptions = [correctRomaji, ...wrongOptions].sort(() => 0.5 - Math.random());
+      return allOptions;
+    }
+
+    function loadNewQuestion() {
+      answerLocked = false;
+      nextBtn.disabled = true;
+      feedbackDiv.textContent = "";
+      
+      // Remove previous button styles
+      document.querySelectorAll(".option-btn").forEach(btn => {
+        btn.classList.remove("correct", "wrong");
+      });
+
+      currentKana = getRandomKatakana();
+      correctOptionRomaji = currentKana.romaji;
+      kanaDisplay.textContent = currentKana.kana;
+
+      const options = generateOptions(correctOptionRomaji);
+      optionsContainer.innerHTML = "";
+
+      options.forEach(romaji => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.textContent = romaji;
+        btn.addEventListener("click", () => handleAnswer(romaji, btn));
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    function handleAnswer(selectedRomaji, selectedBtn) {
+      if (answerLocked) return;
+      answerLocked = true;
+
+      // Highlight all buttons with correct/wrong
+      const allButtons = document.querySelectorAll(".option-btn");
+      allButtons.forEach(btn => {
+        if (btn.textContent === correctOptionRomaji) {
+          btn.classList.add("correct");
+        } else if (btn === selectedBtn && selectedRomaji !== correctOptionRomaji) {
+          btn.classList.add("wrong");
+        }
+        btn.disabled = true;
+      });
+
+      // Update score
+      if (selectedRomaji === correctOptionRomaji) {
+        correctCount++;
+        streak++;
+        feedbackDiv.textContent = "⭕ せいかい！ (Correct!)";
+        feedbackDiv.style.color = "#38a169";
+      } else {
+        wrongCount++;
+        streak = 0;
+        feedbackDiv.textContent = `❌ ざんねん… せいかいは「${correctOptionRomaji}」です`;
+        feedbackDiv.style.color = "#e53e3e";
+      }
+
+      correctSpan.textContent = correctCount;
+      wrongSpan.textContent = wrongCount;
+      streakSpan.textContent = streak;
+
+      nextBtn.disabled = false;
+    }
+
+    // Next button
+    nextBtn.addEventListener("click", loadNewQuestion);
+
+    // Start game
+    loadNewQuestion();
+  </script>
+</body>
+</html>
