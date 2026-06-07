@@ -11,7 +11,7 @@ HTML、CSS、JavaScriptのみで作られています。
 - 英語／日本語のフィードバック
 
 ## デモ
-👉 [GitHub PagesのURLをここに]
+👉 [https://nikhiltomar2712.github.io/katakana-quiz/]
 
 ## 使い方
 1. リポジトリをクローン
@@ -31,4 +31,4 @@ HTML、CSS、JavaScriptのみで作られています。
 
 ---
 
-[あなたの名前] by 作成 ❤️
+[ニキル・トマール] by 作成 ❤️
