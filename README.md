@@ -36,3 +36,23 @@ I'm a developer passionate about Japan and language learning. This project shows
 
 Made with ❤️ by [Your Name]  
 [GitHub Profile Link]
+
+```
+# Create a new folder
+mkdir katakana-quiz
+cd katakana-quiz
+```
+# Create the files (copy-paste code above into your editor, then save)
+# index.html, README.md, README.ja.md
+```
+# Initialize Git
+git init
+git add .
+git commit -m "Initial commit: Katakana Quiz web app / カタカナクイズを公開"
+```
+```
+# Create repo on GitHub (without README, license)
+# Then link and push
+git remote add origin https://github.com/nikhiltomar2712/katakana-quiz.git
+git branch -M main
+git push -u origin main
