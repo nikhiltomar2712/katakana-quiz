@@ -34,7 +34,7 @@ I'm a developer passionate about Japan and language learning. This project shows
 
 ---
 
-Made with ❤️ by [Your Name]  
+Made with ❤️ by [Nikhil Tomar]  
 [GitHub Profile Link]
 
 ```
